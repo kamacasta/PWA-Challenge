@@ -48,5 +48,5 @@ Run `npm start` in the command line to start the server and naviagate to the cor
 ### Author
 
 Kamakanui'aha'ilono J Castaneda
-![Picture](https://github.com/mavila6.png?size=100)
+Marco Avila
 
