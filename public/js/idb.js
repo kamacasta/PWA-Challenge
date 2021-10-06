@@ -36,6 +36,35 @@ const transaction = db.transaction(["new_transaction_pending"], "readwrite")
 // variable created to access the stored object (transaction)
 const transactionStored = transaction.objectStore("new_transaction_pending")
 // variable created to grab all the records and by doing so will set them to a variable.
-const getAll = transactionObjectStore.getAll()
+const getAll = transactionStored.getAll()
+// only when the getAll method is successful will then run the following function
+getAll.onsuccess = function() {
+    if (getAll.result.length > 0) {
+        fetch("api/transaction/bulk", {
+            method: "POST",
+            body: JSON.stringify(getAll.result),
+            headers: {
+                Accept: "application/json, text/plain, */*",
+                "Content-Type": "application/json" 
+            }
+        }).then(response => response.json())
+        .then(serverResponse => {
+            if(serverResponse.message) {
+                throw new Error(serverResponse)
+            }
+            const transaction = db.transaction(["new_transaction_pending"], "readWrite")
+            const transactionStored = transaction.objectStore("new_transaction_pending")
+            // this will clear all the items currently in the users store
+            transactionStored.clear()
+            // alerting the user
+            alert("All transactions that have been saved are currently submited")
+
+        })
+        .catch(err => {
+            console.log(err)
+        })
+    }
+}
 
 }
+window.addEventListener('online', updloadTransactions)
