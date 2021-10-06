@@ -29,7 +29,24 @@ self.addEventListener("install", e => {
     );
     self.skipWaiting();
 });
-// Add event listener to make fetch call
+
+// this event listener deletes the old cache
+self.addEventListener("activate", e => {
+    e.waitUntil(
+        caches.keys().then(keyList => {
+            return Promise.all(
+                keyList.map(key => {
+                    if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
+                        console.log("Deleting old data cache...", key);
+                        return caches.delete(key);
+                    };
+                })
+            );
+        })
+    );
+});
+
+// event listner for creating the fetch call
 self.addEventListener("fetch", e => {
     if (e.request.url.includes("/api/")) {
         e.rospendWith(
@@ -50,4 +67,15 @@ self.addEventListener("fetch", e => {
         );
         return;
     }
+    e.respondWith(
+        fetch(e.request).catch(() => {
+            return caches.match(e.request).then(() => {
+                if (response) {
+                    return response;
+                } else if (e.request.headers.get("accept").includes("text/html")) {
+                    return caches.match("/");
+                };
+            });
+        })
+    );
 });
